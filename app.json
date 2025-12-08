@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "walk-track-app",
+    "slug": "walk-track-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Esta app necesita acceso a tu ubicación para rastrear tu actividad física.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Esta app necesita acceso continuo a tu ubicación para rastrear tu actividad física.",
+        "NSMotionUsageDescription": "Esta app necesita acceso al acelerómetro para detectar tu tipo de actividad física."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "ACTIVITY_RECOGNITION",
+        "HIGH_SAMPLING_RATE_SENSORS"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
