@@ -1,7 +1,7 @@
 // components/activity/ActivityLogList.tsx
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { ActivityLog, ActivityType } from '../../models/ActivityModel';
+import { ActivityLog, ActivityType } from '../models/ActivityModel';
 
 interface ActivityLogListProps {
   logs: ActivityLog[];

@@ -77,7 +77,7 @@ class ActivityController {
       const speed = Math.abs(location.speed ?? 0);
 
       // Actualizar historial
-      ActivityClassifierService.updateHistory(speed, magnitude);
+      ActivityClassifierService.updateHistories(speed, magnitude);
 
       // Clasificar actividad
       const activity = ActivityClassifierService.getActivity(speed, magnitude);
@@ -177,7 +177,9 @@ class ActivityController {
     calories += (runningDistance / 1000) * config.caloriesPerKmRunning;
 
     // Calcular velocidades
-    const speeds = logs.map(log => log.speed).filter(s => s > 0);
+    const speeds: number[] = logs
+      .map(log => log.speed)
+      .filter((s): s is number => s > 0);
     const averageSpeed = speeds.length > 0
       ? speeds.reduce((sum, s) => sum + s, 0) / speeds.length
       : 0;

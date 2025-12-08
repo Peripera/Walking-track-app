@@ -86,7 +86,7 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
       const effectiveSpeed = Math.abs(speed);
 
       // Actualizar historial del clasificador
-      ActivityClassifierService.updateHistory(effectiveSpeed, acceleration.magnitude);
+      ActivityClassifierService. updateHistories(effectiveSpeed, acceleration.magnitude);
 
       // Clasificar actividad
       const activity = ActivityClassifierService.getActivity(

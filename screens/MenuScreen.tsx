@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
-import { SavedRoute } from '../models/ActivityModel';
+import type { SavedRoute } from '../models/ActivityModel';
 import RouteService from '../services/Routeservice';
 
 export default function RoutesScreen() {

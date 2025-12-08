@@ -49,7 +49,7 @@ class ActivityClassifierService {
   /**
    * Actualiza los historiales de velocidad y aceleración
    */
-  SpeedpdateHistory(speed: number, acceleration: number): void {
+  updateHistories(speed: number, acceleration: number): void {
     this.speedHistory = this.updateHistory(this.speedHistory, speed);
     this.accelerationHistory = this.updateHistory(
       this.accelerationHistory,

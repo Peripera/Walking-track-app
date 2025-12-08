@@ -1,7 +1,7 @@
 // components/activity/SessionStatsCard.tsx
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { SessionStats } from '../../models/ActivityModel';
+import { SessionStats } from '../models/ActivityModel';
 
 interface SessionStatsCardProps {
   stats: SessionStats;
