@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { useActivityClassifier } from '../hooks/ActivityClassifier';
 import { ActivityIndicator } from '../components/ActivityIndicator';
 import { SessionStatsCard } from '../components/StatsCards';
 import { ActivityLogList } from '../components/ActivityList';
+import { LiveMapView } from '../components/LiveMapView';
 
 export default function TrackerScreen() {
   const {
@@ -32,6 +33,13 @@ export default function TrackerScreen() {
 
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Extraer ubicaciones de los logs para el mapa
+  const mapLocations = useMemo(() => {
+    return activityLogs
+      .filter(log => log.location)
+      .map(log => log.location);
+  }, [activityLogs]);
 
   const handleStartStop = async () => {
     try {
@@ -122,6 +130,17 @@ export default function TrackerScreen() {
             </>
           )}
         </TouchableOpacity>
+
+        {/* NUEVO: Mapa en Tiempo Real */}
+        {isActive && (location || mapLocations.length > 0) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🗺️ Mapa en Tiempo Real</Text>
+            <LiveMapView 
+              locations={mapLocations} 
+              currentLocation={location} 
+            />
+          </View>
+        )}
 
         {/* Activity Indicator */}
         {isActive && location && acceleration && (
@@ -313,6 +332,12 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 16
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 12
   },
   infoCard: {
     backgroundColor: 'white',
