@@ -1,5 +1,5 @@
-// hooks/useActivityClassifier.ts
-import { useState, useEffect, useCallback, useRef } from 'react';
+// hooks/ActivityClassifier.ts
+import { useState, useEffect, useRef } from 'react';
 import { Accelerometer } from 'expo-sensors';
 import {
   ActivityType,
@@ -35,8 +35,9 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
   const [acceleration, setAcceleration] = useState<AccelerometerData | null>(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const sessionStatsRef = useRef<SessionStats>({
+  
+  // Estado para sessionStats
+  const [sessionStats, setSessionStats] = useState<SessionStats>({
     sessionId: '',
     startTime: 0,
     endTime: null,
@@ -50,11 +51,7 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
   });
 
   const lastLocationRef = useRef<LocationData | null>(null);
-  const lastAccelerationRef = useRef<number>(0);
   const accelerometerSubscriptionRef = useRef<{ remove: () => void } | null>(null);
-  const stepCountRef = useRef<number>(0);
-  const speedSumRef = useRef<number>(0);
-  const speedCountRef = useRef<number>(0);
 
   // Solicitar permisos al montar
   useEffect(() => {
@@ -74,110 +71,8 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
     requestPermissions();
   }, []);
 
-  // Callback para actualizar ubicación
-  const handleLocationUpdate = useCallback((newLocation: LocationData) => {
-    setLocation(newLocation);
-
-    if (!isActive || !acceleration) return;
-
-    try {
-      // Calcular velocidad efectiva
-      const speed = newLocation.speed ?? 0;
-      const effectiveSpeed = Math.abs(speed);
-
-      // Actualizar historial del clasificador
-      ActivityClassifierService. updateHistories(effectiveSpeed, acceleration.magnitude);
-
-      // Clasificar actividad
-      const activity = ActivityClassifierService.getActivity(
-        effectiveSpeed,
-        acceleration.magnitude
-      );
-      const activityConfidence = ActivityClassifierService.getConfidence(
-        effectiveSpeed,
-        acceleration.magnitude,
-        activity
-      );
-
-      setCurrentActivity(activity);
-      setConfidence(activityConfidence);
-
-      // Calcular distancia si hay ubicación previa
-      let distanceIncrement = 0;
-      if (lastLocationRef.current) {
-        distanceIncrement = LocationService.calculateDistance(
-          lastLocationRef.current.latitude,
-          lastLocationRef.current.longitude,
-          newLocation.latitude,
-          newLocation.longitude
-        );
-      }
-
-      // Detectar pasos
-      if (ActivityClassifierService.detectStep(acceleration.magnitude)) {
-        if (activity === ActivityType.WALKING || activity === ActivityType.RUNNING) {
-          stepCountRef.current += 1;
-        }
-      }
-
-      // Calcular calorías
-      const config = ActivityClassifierService.getConfig();
-      let caloriesIncrement = 0;
-      
-      if (activity === ActivityType.WALKING) {
-        caloriesIncrement = config.caloriesPerStep;
-      } else if (activity === ActivityType.RUNNING) {
-        caloriesIncrement = config.caloriesPerStep + (distanceIncrement / 1000) * config.caloriesPerKmRunning;
-      }
-
-      // Actualizar velocidad promedio
-      speedSumRef.current += effectiveSpeed;
-      speedCountRef.current += 1;
-
-      // Crear log de actividad
-      const activityLog: ActivityLog = {
-        id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        activity,
-        confidence: activityConfidence,
-        location: newLocation,
-        acceleration,
-        timestamp: Date.now(),
-        speed: effectiveSpeed
-      };
-
-      // Actualizar logs
-      setActivityLogs(prev => [...prev, activityLog]);
-
-      // Actualizar stats de sesión
-      const currentStats = sessionStatsRef.current;
-      const now = Date.now();
-      const duration = now - currentStats.startTime;
-
-      sessionStatsRef.current = {
-        ...currentStats,
-        duration,
-        distance: currentStats.distance + distanceIncrement,
-        steps: stepCountRef.current,
-        calories: currentStats.calories + caloriesIncrement,
-        averageSpeed: speedCountRef.current > 0 
-          ? speedSumRef.current / speedCountRef.current 
-          : 0,
-        maxSpeed: Math.max(currentStats.maxSpeed, effectiveSpeed),
-        activities: {
-          ...currentStats.activities,
-          [activity]: (currentStats.activities[activity] || 0) + 1
-        }
-      };
-
-      lastLocationRef.current = newLocation;
-    } catch (err) {
-      console.error('Error procesando ubicación:', err);
-      setError('Error procesando datos de ubicación');
-    }
-  }, [isActive, acceleration]);
-
   // Iniciar tracking
-  const startTracking = useCallback(async () => {
+  const startTracking = async () => {
     try {
       setError(null);
       
@@ -191,7 +86,7 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
 
       // Inicializar sesión
       const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      sessionStatsRef.current = {
+      setSessionStats({
         sessionId,
         startTime: Date.now(),
         endTime: null,
@@ -202,20 +97,67 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
         averageSpeed: 0,
         maxSpeed: 0,
         activities: {}
-      };
+      });
 
-      // Reiniciar contadores
-      stepCountRef.current = 0;
-      speedSumRef.current = 0;
-      speedCountRef.current = 0;
       lastLocationRef.current = null;
       setActivityLogs([]);
       ActivityClassifierService.reset();
 
-      // Iniciar acelerómetro
-      Accelerometer.setUpdateInterval(100); // 10 Hz
+      setIsActive(true);
+
+      // ═══════════════════════════════════════════════
+      // PASO 1: INICIAR GPS PRIMERO
+      // ═══════════════════════════════════════════════
+      await LocationService.startTracking((gps) => {
+        const now = Date.now();
+
+        const newLoc: LocationData = {
+          latitude: gps.latitude,
+          longitude: gps.longitude,
+          accuracy: gps.accuracy ?? null,
+          timestamp: gps.timestamp,
+          altitude: gps.altitude ?? null,
+          heading: gps.heading ?? null,
+          speed: 0
+        };
+
+        // Calcular velocidad MANUALMENTE
+        if (lastLocationRef.current) {
+          const dt = (now - lastLocationRef.current.timestamp) / 1000;
+          const dist = LocationService.calculateDistance(
+            lastLocationRef.current.latitude,
+            lastLocationRef.current.longitude,
+            newLoc.latitude,
+            newLoc.longitude
+          );
+
+          const speed = dist / dt;
+          newLoc.speed = isFinite(speed) ? speed : 0;
+
+          // Actualizar distancia
+          setSessionStats(prev => ({
+            ...prev,
+            distance: prev.distance + (isFinite(dist) ? dist : 0),
+            maxSpeed: Math.max(prev.maxSpeed, newLoc.speed ?? 0)
+          }));
+        }
+
+        lastLocationRef.current = newLoc;
+        setLocation(newLoc);
+      }, {
+        accuracy: 6,
+        timeInterval: 1000,
+        distanceInterval: 1
+      });
+
+      // ═══════════════════════════════════════════════
+      // PASO 2: INICIAR ACELERÓMETRO DESPUÉS
+      // ═══════════════════════════════════════════════
+      Accelerometer.setUpdateInterval(1000); // 1 Hz - CADA SEGUNDO
+      
       accelerometerSubscriptionRef.current = Accelerometer.addListener(({ x, y, z }) => {
         const magnitude = ActivityClassifierService.calculateMagnitude(x, y, z);
+        
         const accelData: AccelerometerData = {
           x,
           y,
@@ -223,27 +165,94 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
           magnitude,
           timestamp: Date.now()
         };
+        
         setAcceleration(accelData);
-        lastAccelerationRef.current = magnitude;
+
+        // ═══════════════════════════════════════════════
+        // SOLO ACTUALIZAR SI YA TENEMOS LOCATION VÁLIDO
+        // ═══════════════════════════════════════════════
+        if (location?.latitude && location?.longitude) {
+          // Clasificar actividad
+          const speed = location.speed ?? 0;
+          
+          ActivityClassifierService.updateHistories(speed, magnitude);
+          
+          const activity = ActivityClassifierService.getActivity(speed, magnitude);
+          const activityConfidence = ActivityClassifierService.getConfidence(
+            speed,
+            magnitude,
+            activity
+          );
+
+          setCurrentActivity(activity);
+          setConfidence(activityConfidence);
+
+          // Crear log
+          const log: ActivityLog = {
+            id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            activity,
+            confidence: activityConfidence,
+            location,
+            acceleration: accelData,
+            timestamp: Date.now(),
+            speed
+          };
+
+          setActivityLogs(prev => [...prev, log]);
+
+          // ═══════════════════════════════════════════════
+          // ACTUALIZAR STATS
+          // ═══════════════════════════════════════════════
+          setSessionStats(prev => {
+            const now = Date.now();
+            const duration = now - prev.startTime;
+            const durationInSeconds = duration / 1000;
+            
+            let steps = prev.steps;
+            let calories = prev.calories;
+
+            // Incrementar pasos cada segundo si está caminando o corriendo
+            if (activity === ActivityType.WALKING || activity === ActivityType.RUNNING) {
+              steps += 1;
+            }
+
+            // Calcular calorías
+            if (activity === ActivityType.RUNNING) {
+              calories += 0.1;
+            } else if (activity === ActivityType.WALKING) {
+              calories += 0.05;
+            }
+
+            // Velocidad promedio
+            const averageSpeed = durationInSeconds > 0 
+              ? prev.distance / durationInSeconds 
+              : 0;
+
+            return {
+              ...prev,
+              duration,
+              steps,
+              calories,
+              averageSpeed,
+              activities: {
+                ...prev.activities,
+                [activity]: (prev.activities[activity] || 0) + 1
+              }
+            };
+          });
+        }
       });
 
-      // Iniciar GPS
-      await LocationService.startTracking(handleLocationUpdate, {
-        accuracy: 6, // High accuracy
-        timeInterval: 1000,
-        distanceInterval: 1
-      });
-
-      setIsActive(true);
     } catch (err) {
       console.error('Error iniciando tracking:', err);
       setError(err instanceof Error ? err.message : 'Error iniciando tracking');
+      setIsActive(false);
       throw err;
     }
-  }, [hasPermission, handleLocationUpdate]);
+  };
 
   // Detener tracking
-  const stopTracking = useCallback(async () => {
+  const stopTracking = async () => {
     try {
       // Detener servicios
       LocationService.stopTracking();
@@ -255,10 +264,12 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
 
       // Finalizar sesión
       const finalStats: SessionStats = {
-        ...sessionStatsRef.current,
+        ...sessionStats,
         endTime: Date.now(),
-        duration: Date.now() - sessionStatsRef.current.startTime
+        duration: Date.now() - sessionStats.startTime
       };
+
+      setSessionStats(finalStats);
 
       // Guardar ruta si hay logs
       if (activityLogs.length > 0) {
@@ -272,7 +283,7 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
       setError('Error guardando datos de sesión');
       throw err;
     }
-  }, [activityLogs]);
+  };
 
   // Cleanup al desmontar
   useEffect(() => {
@@ -290,7 +301,7 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
     currentActivity,
     confidence,
     activityLogs,
-    sessionStats: sessionStatsRef.current,
+    sessionStats,
     isActive,
     startTracking,
     stopTracking,
