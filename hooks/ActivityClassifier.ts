@@ -105,9 +105,7 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
 
       setIsActive(true);
 
-      // ═══════════════════════════════════════════════
-      // PASO 1: INICIAR GPS PRIMERO
-      // ═══════════════════════════════════════════════
+  
       await LocationService.startTracking((gps) => {
         const now = Date.now();
 
@@ -150,10 +148,8 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
         distanceInterval: 1
       });
 
-      // ═══════════════════════════════════════════════
-      // PASO 2: INICIAR ACELERÓMETRO DESPUÉS
-      // ═══════════════════════════════════════════════
-      Accelerometer.setUpdateInterval(1000); // 1 Hz - CADA SEGUNDO
+
+      Accelerometer.setUpdateInterval(1000); 
       
       accelerometerSubscriptionRef.current = Accelerometer.addListener(({ x, y, z }) => {
         const magnitude = ActivityClassifierService.calculateMagnitude(x, y, z);
@@ -168,9 +164,7 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
         
         setAcceleration(accelData);
 
-        // ═══════════════════════════════════════════════
-        // SOLO ACTUALIZAR SI YA TENEMOS LOCATION VÁLIDO
-        // ═══════════════════════════════════════════════
+
         if (location?.latitude && location?.longitude) {
           // Clasificar actividad
           const speed = location.speed ?? 0;
@@ -200,9 +194,7 @@ export function useActivityClassifier(): UseActivityClassifierReturn {
 
           setActivityLogs(prev => [...prev, log]);
 
-          // ═══════════════════════════════════════════════
-          // ACTUALIZAR STATS
-          // ═══════════════════════════════════════════════
+    
           setSessionStats(prev => {
             const now = Date.now();
             const duration = now - prev.startTime;

@@ -1,4 +1,3 @@
-// services/LocationService.ts
 import * as Location from 'expo-location';
 import { LocationData } from '../models/ActivityModel';
 
@@ -16,7 +15,7 @@ class LocationService {
         return false;
       }
 
-      // Solicitar permisos de ubicación en segundo plano (opcional pero recomendado)
+      // Solicitar permisos de ubicación en segundo plano 
       try {
         await Location.requestBackgroundPermissionsAsync();
       } catch (error) {
@@ -47,8 +46,8 @@ class LocationService {
       this.subscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          timeInterval: 1000, // Actualizar cada segundo
-          distanceInterval: 1, // Actualizar cada metro
+          timeInterval: 1000, 
+          distanceInterval: 1, 
           ...options
         },
         (location) => {

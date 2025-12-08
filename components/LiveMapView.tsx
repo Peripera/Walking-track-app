@@ -79,7 +79,7 @@ export function LiveMapView({ locations, currentLocation }: LiveMapViewProps) {
           position: absolute;
           top: 10px;
           right: 10px;
-          background: rgba(255, 75, 75, 0.95);
+          background: rgba(68, 27, 233, 0.97);
           color: #fff;
           padding: 6px 12px;
           border-radius: 20px;
@@ -148,8 +148,8 @@ export function LiveMapView({ locations, currentLocation }: LiveMapViewProps) {
           // Marcador pulsante para ubicación actual
           var currentMarker = L.circleMarker(currentLatLng, {
             radius: 8,
-            color: '#ff4b4b',
-            fillColor: '#ff4b4b',
+            color: '#16e74eff',
+            fillColor: '#17fb26ff',
             fillOpacity: 1,
             weight: 3
           }).addTo(map);
@@ -157,8 +157,8 @@ export function LiveMapView({ locations, currentLocation }: LiveMapViewProps) {
           // Círculo exterior pulsante
           var pulsingCircle = L.circle(currentLatLng, {
             radius: 20,
-            color: '#ff4b4b',
-            fillColor: '#ff4b4b',
+            color: '#5df171ff',
+            fillColor: '#6df46bff',
             fillOpacity: 0.2,
             weight: 1
           }).addTo(map);

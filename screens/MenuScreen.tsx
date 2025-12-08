@@ -13,6 +13,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import type { SavedRoute } from '../models/ActivityModel';
 import RouteService from '../services/Routeservice';
+import { Feather, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+
 
 export default function RoutesScreen() {
   const [routes, setRoutes] = useState<SavedRoute[]>([]);
@@ -106,15 +108,15 @@ export default function RoutesScreen() {
 
       <View style={styles.routeStats}>
         <View style={styles.statItem}>
-          <Text style={styles.statIcon}>📍</Text>
-          <Text style={styles.statLabel}>Distancia</Text>
+          
+          <Feather name="map" size={20} color="#111827" />
           <Text style={styles.statValue}>
             {(item.stats.distance / 1000).toFixed(2)} km
           </Text>
         </View>
 
         <View style={styles.statItem}>
-          <Text style={styles.statIcon}>⏱️</Text>
+          <FontAwesome5 name="clock" size={20} color="#111827" />
           <Text style={styles.statLabel}>Duración</Text>
           <Text style={styles.statValue}>
             {formatDuration(item.stats.duration)}
@@ -122,13 +124,13 @@ export default function RoutesScreen() {
         </View>
 
         <View style={styles.statItem}>
-          <Text style={styles.statIcon}>👣</Text>
+          <MaterialCommunityIcons name="walk" size={20} color="#34ea44ff" />
           <Text style={styles.statLabel}>Pasos</Text>
           <Text style={styles.statValue}>{item.stats.steps}</Text>
         </View>
 
         <View style={styles.statItem}>
-          <Text style={styles.statIcon}>🔥</Text>
+          <MaterialCommunityIcons name="fire" size={20} color="#f17a03ff" />
           <Text style={styles.statLabel}>Calorías</Text>
           <Text style={styles.statValue}>
             {item.stats.calories.toFixed(0)}
@@ -141,20 +143,28 @@ export default function RoutesScreen() {
           style={[styles.actionButton, styles.viewButton]}
           onPress={() => handleViewMap(item)}
         >
-          <Text style={styles.actionButtonText}>🗺️ Ver Mapa</Text>
+          <View style={{ flexDirection:'row', alignItems:'center', gap:6 }}>
+          <Feather name="map" size={18} color="#74bfddff" />
+        <Text style={styles.actionButtonText}>Ver Mapa</Text>
+        </View>
+
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.actionButton, styles.deleteButton]}
           onPress={() => handleDeleteRoute(item)}
         >
-          <Text style={styles.actionButtonText}>🗑️ Eliminar</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Feather name="trash-2" size={18} color="black" />
+          <Text style={styles.actionButtonText}>Eliminar</Text>
+          </View>
+
         </TouchableOpacity>
       </View>
 
       <View style={styles.routePoints}>
         <Text style={styles.routePointsText}>
-          📊 {item.logs.length} puntos registrados
+          {item.logs.length} puntos registrados
         </Text>
       </View>
     </View>
@@ -163,7 +173,11 @@ export default function RoutesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>🗺️ Rutas Guardadas</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Feather name="folder" size={26} color="#111827" />
+        <Text style={styles.headerTitle}>Rutas Guardadas</Text>
+        </View>
+
         <Text style={styles.headerSubtitle}>
           {routes.length} {routes.length === 1 ? 'ruta' : 'rutas'}
         </Text>
@@ -182,8 +196,7 @@ export default function RoutesScreen() {
             <Text style={styles.emptyEmoji}>📍</Text>
             <Text style={styles.emptyTitle}>No hay rutas guardadas</Text>
             <Text style={styles.emptyText}>
-              Inicia una sesión de tracking y las rutas se guardarán
-              automáticamente aquí.
+              Consulta aquí tu historial de rutas.
             </Text>
           </View>
         }

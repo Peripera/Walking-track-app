@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SessionStats } from '../models/ActivityModel';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface SessionStatsCardProps {
   stats: SessionStats;
@@ -35,7 +36,7 @@ export function SessionStatsCard({ stats }: SessionStatsCardProps) {
       
       <View style={styles.statsGrid}>
         <View style={styles.statItem}>
-          <Text style={styles.statIcon}>⏱️</Text>
+          <Feather name="clock" size={20} color="#111827" />
           <Text style={styles.statLabel}>Duración</Text>
           <Text style={styles.statValue}>{formatDuration(stats.duration)}</Text>
         </View>

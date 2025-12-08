@@ -15,6 +15,8 @@ import { ActivityIndicator } from '../components/ActivityIndicator';
 import { SessionStatsCard } from '../components/StatsCards';
 import { ActivityLogList } from '../components/ActivityList';
 import { LiveMapView } from '../components/LiveMapView';
+import { Feather, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+
 
 export default function TrackerScreen() {
   const {
@@ -48,7 +50,7 @@ export default function TrackerScreen() {
       if (isActive) {
         await stopTracking();
         Alert.alert(
-          '✅ Sesión Finalizada',
+          'Sesión Finalizada',
           `Distancia: ${(sessionStats.distance / 1000).toFixed(2)} km\n` +
           `Pasos: ${sessionStats.steps}\n` +
           `Calorías: ${sessionStats.calories.toFixed(0)} kcal\n\n` +
@@ -85,10 +87,8 @@ export default function TrackerScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>🏃 Activity Tracker</Text>
-          <Text style={styles.headerSubtitle}>
-            Detecta tu actividad física en tiempo real
-          </Text>
+          <Text style={styles.headerTitle}>Walk Tracking</Text>
+  
         </View>
 
         {/* Error Message */}
@@ -121,20 +121,19 @@ export default function TrackerScreen() {
             <RNActivityIndicator color="white" size="large" />
           ) : (
             <>
-              <Text style={styles.mainButtonEmoji}>
-                {isActive ? '⏹️' : '▶️'}
-              </Text>
+             {isActive ? (
+            <Feather name="stop-circle" size={32} color="#fffbfbff" />) : (
+            <Feather name="play-circle" size={32} color="#f8fff5ff" />)}
+
               <Text style={styles.mainButtonText}>
                 {isActive ? 'DETENER' : 'INICIAR'}
               </Text>
             </>
           )}
         </TouchableOpacity>
-
-        {/* NUEVO: Mapa en Tiempo Real */}
+     
         {isActive && (location || mapLocations.length > 0) && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🗺️ Mapa en Tiempo Real</Text>
             <LiveMapView 
               locations={mapLocations} 
               currentLocation={location} 
@@ -142,7 +141,7 @@ export default function TrackerScreen() {
           </View>
         )}
 
-        {/* Activity Indicator */}
+  
         {isActive && location && acceleration && (
           <View style={styles.section}>
             <ActivityIndicator
@@ -154,14 +153,13 @@ export default function TrackerScreen() {
           </View>
         )}
 
-        {/* Session Stats */}
+   
         {isActive && (
           <View style={styles.section}>
             <SessionStatsCard stats={sessionStats} />
           </View>
         )}
 
-        {/* Location Info */}
         {isActive && location && (
           <View style={styles.section}>
             <View style={styles.infoCard}>
@@ -204,23 +202,27 @@ export default function TrackerScreen() {
             style={styles.logsButton}
             onPress={() => setShowLogsModal(true)}
           >
-            <Text style={styles.logsButtonText}>
-              📝 Ver Logs ({activityLogs.length})
-            </Text>
+            <View style={{ flexDirection:'row', gap:6, alignItems:'center' }}>
+          <FontAwesome5 name="clipboard-list" size={18} color="#214aeeff" />
+          <Text style={styles.logsButtonText}>
+            Ver Logs ({activityLogs.length})
+          </Text>
+          </View>
           </TouchableOpacity>
         )}
 
         {/* Placeholder when not active */}
         {!isActive && (
           <View style={styles.placeholderContainer}>
-            <Text style={styles.placeholderEmoji}>🏃‍♂️</Text>
+            <MaterialCommunityIcons name="run" size={64} color="#6B7280" />
+
             <Text style={styles.placeholderTitle}>
               Comienza a Rastrear
             </Text>
             <Text style={styles.placeholderText}>
-              Presiona "INICIAR" para comenzar a detectar tu actividad física.
+              Presiona "INICIAR" para comenzar un nuevo registro.
               La app utilizará GPS y acelerómetro para clasificar si estás
-              quieto, caminando, corriendo o en un vehículo.
+              quieto, caminando, corriendo o en un vehículo en movimineto.
             </Text>
           </View>
         )}
@@ -266,10 +268,11 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 45,
     fontWeight: 'bold',
     color: '#111827',
-    marginBottom: 8
+    marginBottom: 8,
+    marginTop: 25
   },
   headerSubtitle: {
     fontSize: 14,
@@ -376,7 +379,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 8
+    marginTop: 4
   },
   logsButtonText: {
     fontSize: 16,
